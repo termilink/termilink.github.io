@@ -1,0 +1,180 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Database Manager</title>
+  <link rel="stylesheet" href="style.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+  <script type="module" src="https://www.gstatic.com/firebasejs/9.6.10/firebase-app.js"></script>
+  <script type="module" src="https://www.gstatic.com/firebasejs/9.6.10/firebase-analytics.js"></script>
+  <script type="module" src="https://www.gstatic.com/firebasejs/9.6.10/firebase-firestore.js"></script>
+  <script src="script.js" type="module"></script>
+</head>
+<body>
+  <div class="app-container" id="appContainer">
+    <!-- Sidebar -->
+    <aside class="sidebar">
+      <div class="sidebar-header">
+        <h1>Projects</h1>
+        <button class="btn btn-primary" id="newProjectBtn">+ New Project</button>
+      </div>
+      <div class="projects-list" id="projectsList">
+        <!-- Projects will be rendered here -->
+      </div>
+      <div class="sidebar-footer">
+        <span id="projectCount">0 projects</span>
+      </div>
+    </aside>
+
+    <!-- Main Content -->
+    <main class="main-content">
+      <div class="main-header">
+        <h2 id="mainTitle">Select a project</h2>
+      </div>
+      <div class="main-body" id="mainBody">
+        <div class="empty-state" id="emptyState">
+          <h3>No Project Selected</h3>
+          <p>Create a new project or select one from the sidebar to get started.</p>
+        </div>
+        <div id="recordsView" style="display: none;">
+          <div class="toolbar">
+            <button class="btn btn-primary" id="addRecordBtn">+ Add New Record</button>
+          </div>
+          <table class="records-table">
+            <thead>
+              <tr>
+                <th>ID</th>
+                <th>Name</th>
+                <th>Value</th>
+                <th>Actions</th>
+              </tr>
+            </thead>
+            <tbody id="recordsTableBody">
+              <!-- Records will be rendered here -->
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </main>
+  </div>
+
+  <!-- Create/Rename Project Modal -->
+  <div class="modal-backdrop" id="projectModal">
+    <div class="modal">
+      <div class="modal-header">
+        <h3 id="projectModalTitle">New Project</h3>
+      </div>
+      <div class="modal-body">
+        <div class="form-group">
+          <label class="form-label" for="projectNameInput">Project Name (lowercase letters only)</label>
+          <input type="text" class="form-control" id="projectNameInput" placeholder="e.g., users, products">
+          <div class="error-message" id="projectNameError" style="display: none;"></div>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-secondary" id="cancelProjectBtn">Cancel</button>
+        <button class="btn btn-primary" id="saveProjectBtn">Save</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Delete Confirmation Modal -->
+  <div class="modal-backdrop" id="deleteModal">
+    <div class="modal">
+      <div class="modal-header">
+        <h3>Confirm Delete</h3>
+      </div>
+      <div class="modal-body">
+        <p class="confirmation-text" id="deleteConfirmText"></p>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-secondary" id="cancelDeleteBtn">Cancel</button>
+        <button class="btn btn-danger" id="confirmDeleteBtn">Delete</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Add/Edit Record Modal -->
+  <div class="modal-backdrop" id="recordModal">
+    <div class="modal">
+      <div class="modal-header">
+        <h3 id="recordModalTitle">Add New Record</h3>
+      </div>
+      <div class="modal-body">
+        <div class="form-group">
+          <label class="form-label" for="recordNameInput">Name</label>
+          <input type="text" class="form-control" id="recordNameInput" placeholder="Enter name">
+        </div>
+        <div class="form-group">
+          <label class="form-label" for="recordValueInput">Value</label>
+          <input type="text" class="form-control" id="recordValueInput" placeholder="Enter value">
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-secondary" id="cancelRecordBtn">Cancel</button>
+        <button class="btn btn-primary" id="saveRecordBtn">Save</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Project API Links Modal -->
+  <div class="modal-backdrop" id="projectApiLinksModal">
+    <div class="modal" style="max-width: 600px;">
+      <div class="modal-header">
+        <h3>Project API Links</h3>
+      </div>
+      <div class="modal-body">
+        <p>Use these links to interact with projects via URL parameters.</p>
+        <div class="form-group">
+          <label class="form-label">Create New Project</label>
+          <input type="text" class="form-control" id="apiLinkCreateProject" readonly>
+          <button class="btn btn-secondary copy-btn" data-target="apiLinkCreateProject">Copy</button>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Delete This Project</label>
+          <input type="text" class="form-control" id="apiLinkDeleteProject" readonly>
+          <button class="btn btn-secondary copy-btn" data-target="apiLinkDeleteProject">Copy</button>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Add Record to This Project</label>
+          <input type="text" class="form-control" id="apiLinkAddRecord" readonly>
+          <button class="btn btn-secondary copy-btn" data-target="apiLinkAddRecord">Copy</button>
+          <small style="display: block; margin-top: 5px; color: var(--color-text-secondary);">Modify `&name=...&value=...` before use.</small>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-primary" id="closeProjectApiLinksModalBtn">Close</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Record API Links Modal -->
+  <div class="modal-backdrop" id="recordApiLinksModal">
+    <div class="modal" style="max-width: 600px;">
+      <div class="modal-header">
+        <h3>Record API Links</h3>
+      </div>
+      <div class="modal-body">
+        <p>Use these links to interact with this record via URL parameters.</p>
+        <div class="form-group">
+          <label class="form-label">Update This Record</label>
+          <input type="text" class="form-control" id="apiLinkUpdateRecord" readonly>
+          <button class="btn btn-secondary copy-btn" data-target="apiLinkUpdateRecord">Copy</button>
+          <small style="display: block; margin-top: 5px; color: var(--color-text-secondary);">Modify `&name=...&value=...` before use.</small>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Delete This Record</label>
+          <input type="text" class="form-control" id="apiLinkDeleteRecord" readonly>
+          <button class="btn btn-secondary copy-btn" data-target="apiLinkDeleteRecord">Copy</button>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-primary" id="closeRecordApiLinksModalBtn">Close</button>
+      </div>
+    </div>
+  </div>
+
+  <script src="script.js" type="module"></script>
+</body>
+</html>
