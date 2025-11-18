@@ -3,6 +3,22 @@ import { initializeApp } from "https://www.gstatic.com/firebasejs/9.6.10/firebas
 import { getAnalytics } from "https://www.gstatic.com/firebasejs/9.6.10/firebase-analytics.js";
 import { getFirestore, collection, addDoc, getDocs, doc, setDoc, deleteDoc, onSnapshot, updateDoc, getDoc } from "https://www.gstatic.com/firebasejs/9.6.10/firebase-firestore.js";
 
+    // Firebase configuration
+    const firebaseConfig = {
+      apiKey: "AIzaSyBvudT5fANImtfZbzUqQ7glWUHVTNQF1AA",
+      authDomain: "termilink-95380.firebaseapp.com",
+      projectId: "termilink-95380",
+      storageBucket: "termilink-95380.firebasestorage.app",
+      messagingSenderId: "433521910078",
+      appId: "1:433521910078:web:67791a302e05bb62ae0c6f",
+      measurementId: "G-81MR1ZX5Y1",
+    };
+
+    // Initialize Firebase
+    const app = initializeApp(firebaseConfig);
+    const analytics = getAnalytics(app);
+    const db = getFirestore(app);
+
 // Password Protection Constants
 const CORRECT_PASSWORD = "5642";
 const AUTH_COOKIE_NAME = "termilink_auth";
@@ -13,6 +29,24 @@ const passwordProtectionDiv = document.getElementById('passwordProtection');
 const passwordInput = document.getElementById('passwordInput');
 const loginButton = document.getElementById('loginButton');
 const mainContentDiv = document.getElementById('mainContent');
+
+// Firebase Config Modal Elements
+const openFirebaseConfigBtn = document.getElementById('openFirebaseConfigBtn');
+const firebaseConfigModal = document.getElementById('firebaseConfigModal');
+const firebaseConfigOutput = document.getElementById('firebaseConfigOutput');
+const closeFirebaseConfigModalBtn = document.getElementById('closeFirebaseConfigModalBtn');
+const firebasePythonExample = document.getElementById('firebasePythonExample');
+
+// Firebase config object provided by the user
+const FIREBASE_CONFIG_OBJECT = `{
+  apiKey: "AIzaSyBvudT5fANImtfZbzUqQ7glWUHVTNQF1AA",
+  authDomain: "termilink-95380.firebaseapp.com",
+  projectId: "termilink-95380",
+  storageBucket: "termilink-95380.firebasestorage.app",
+  messagingSenderId: "433521910078",
+  appId: "1:433521910078:web:67791a302e05bb62ae0c6f",
+  measurementId: "G-81MR1ZX5Y1"
+}`;
 
 // Cookie Utilities
 function setCookie(name, value, days) {
@@ -87,22 +121,6 @@ checkAuthentication();
     let deleteTargetType = null;
     let deleteTargetId = null;
     let unsubscribeRecords = null; // To store the unsubscribe function for records listener
-
-    // Firebase configuration
-    const firebaseConfig = {
-      apiKey: "AIzaSyBvudT5fANImtfZbzUqQ7glWUHVTNQF1AA",
-      authDomain: "termilink-95380.firebaseapp.com",
-      projectId: "termilink-95380",
-      storageBucket: "termilink-95380.firebasestorage.app",
-      messagingSenderId: "433521910078",
-      appId: "1:433521910078:web:67791a302e05bb62ae0c6f",
-      measurementId: "G-81MR1ZX5Y1",
-    };
-
-    // Initialize Firebase
-    const app = initializeApp(firebaseConfig);
-    const analytics = getAnalytics(app);
-    const db = getFirestore(app);
 
     // Initialize with sample data
     function initializeSampleData() {
@@ -670,6 +688,25 @@ checkAuthentication();
     window.openDeleteRecordModal = openDeleteRecordModal;
     window.openProjectApiLinksModal = openProjectApiLinksModal;
     window.openRecordApiLinksModal = openRecordApiLinksModal;
+
+    // Firebase Config Modal functions
+    function openFirebaseConfigModal() {
+      firebaseConfigOutput.value = FIREBASE_CONFIG_OBJECT;
+      firebaseConfigModal.classList.add('active');
+    }
+
+    function closeFirebaseConfigModal() {
+      firebaseConfigModal.classList.remove('active');
+    }
+
+    // Event listeners for Firebase Config Modal
+    openFirebaseConfigBtn.addEventListener('click', openFirebaseConfigModal);
+    closeFirebaseConfigModalBtn.addEventListener('click', closeFirebaseConfigModal);
+    firebaseConfigModal.addEventListener('click', (e) => {
+      if (e.target === firebaseConfigModal) {
+        closeFirebaseConfigModal();
+      }
+    });
 
     // Initial app initialization and data load
     // initializeSampleData(); // This will now be called after successful authentication
