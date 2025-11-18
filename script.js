@@ -3,6 +3,80 @@ import { initializeApp } from "https://www.gstatic.com/firebasejs/9.6.10/firebas
 import { getAnalytics } from "https://www.gstatic.com/firebasejs/9.6.10/firebase-analytics.js";
 import { getFirestore, collection, addDoc, getDocs, doc, setDoc, deleteDoc, onSnapshot, updateDoc, getDoc } from "https://www.gstatic.com/firebasejs/9.6.10/firebase-firestore.js";
 
+// Password Protection Constants
+const CORRECT_PASSWORD = "5642";
+const AUTH_COOKIE_NAME = "termilink_auth";
+const COOKIE_EXPIRATION_DAYS = 7;
+
+// DOM Elements
+const passwordProtectionDiv = document.getElementById('passwordProtection');
+const passwordInput = document.getElementById('passwordInput');
+const loginButton = document.getElementById('loginButton');
+const mainContentDiv = document.getElementById('mainContent');
+
+// Cookie Utilities
+function setCookie(name, value, days) {
+  let expires = "";
+  if (days) {
+    const date = new Date();
+    date.setTime(date.getTime() + (days * 24 * 60 * 60 * 1000));
+    expires = "; expires=" + date.toUTCString();
+  }
+  document.cookie = name + "=" + (value || "") + expires + "; path=/";
+}
+
+function getCookie(name) {
+  const nameEQ = name + "=";
+  const ca = document.cookie.split(';');
+  for (let i = 0; i < ca.length; i++) {
+    let c = ca[i];
+    while (c.charAt(0) === ' ') c = c.substring(1, c.length);
+    if (c.indexOf(nameEQ) === 0) return c.substring(nameEQ.length, c.length);
+  }
+  return null;
+}
+
+function deleteCookie(name) {
+  document.cookie = name + '=; Max-Age=-99999999;';
+}
+
+// Authentication Logic
+function showMainContent() {
+  passwordProtectionDiv.style.display = 'none';
+  mainContentDiv.style.display = 'block';
+  initializeSampleData(); // Initialize the main app content after authentication
+}
+
+function handleLogin() {
+  const enteredPassword = passwordInput.value;
+  if (enteredPassword === CORRECT_PASSWORD) {
+    setCookie(AUTH_COOKIE_NAME, "true", COOKIE_EXPIRATION_DAYS);
+    showMainContent();
+  } else {
+    alert("Incorrect password. Please try again.");
+    passwordInput.value = '';
+  }
+}
+
+function checkAuthentication() {
+  if (getCookie(AUTH_COOKIE_NAME) === "true") {
+    showMainContent();
+  } else {
+    passwordProtectionDiv.style.display = 'flex'; // Use flex for centering
+    mainContentDiv.style.display = 'none';
+  }
+}
+
+// Event Listeners
+loginButton.addEventListener('click', handleLogin);
+passwordInput.addEventListener('keypress', (e) => {
+  if (e.key === 'Enter') {
+    handleLogin();
+  }
+});
+
+// Initial Check on Page Load
+checkAuthentication();
 
     // Data storage
     let projects = {};
@@ -598,7 +672,7 @@ import { getFirestore, collection, addDoc, getDocs, doc, setDoc, deleteDoc, onSn
     window.openRecordApiLinksModal = openRecordApiLinksModal;
 
     // Initial app initialization and data load
-    initializeSampleData();
+    // initializeSampleData(); // This will now be called after successful authentication
 
     // --- URL API Logic (moved here to ensure projects are loaded) ---
     function getUrlParams() {
